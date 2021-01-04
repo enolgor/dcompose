@@ -6,6 +6,8 @@ if [ ! $(whoami) = "root" ]; then
   exit 1
 fi
 
+SCRIPTDIR="$( cd "$( dirname "$0" )" && pwd )"
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
@@ -15,9 +17,9 @@ cd /etc/dcompose
 case "$1" in
     list)
     for f in available/docker-compose.*.yml; do
-      name=$(basename $f)
-      if [ -f "enabled/$name" ]; then
-        printf "${GREEN}[ enabled]${NC} $name\n"
+      name=$(basename $f | cut -d . -f 2)
+      if [ -f "enabled/docker-compose.$name.yml" ]; then
+        printf "${GREEN}[enabled] ${NC} $name\n"
       else
         printf "${RED}[disabled]${NC} $name\n"
       fi
@@ -25,6 +27,13 @@ case "$1" in
     exit 0
     ;;
     enable)
+    if [ "$2" = "--all" ]; then
+      for f in available/docker-compose.*.yml; do
+        name=$(basename $f | cut -d . -f 2)
+        /bin/sh -c "$SCRIPTDIR/dcompose $1 $name"
+      done
+      exit 0
+    fi
     test ! -f "enabled/docker-compose.yml" && test -f "available/docker-compose.yml" && ln -s "../available/docker-compose.yml" "enabled/docker-compose.yml"
     test ! -f "enabled/docker-compose.$2.yml" && test -f "available/docker-compose.$2.yml" && ln -s "../available/docker-compose.$2.yml" "enabled/docker-compose.$2.yml"
     enabled=$?
@@ -34,6 +43,13 @@ case "$1" in
     exit 0
     ;;
     disable)
+    if [ "$2" = "--all" ]; then
+      for f in available/docker-compose.*.yml; do
+        name=$(basename $f | cut -d . -f 2)
+        /bin/sh -c "$SCRIPTDIR/dcompose $1 $name"
+      done
+      exit 0
+    fi
     test -f "enabled/docker-compose.$2.yml"  && rm "enabled/docker-compose.$2.yml" 2> /dev/null
     disabled=$?
     if [ -f "on_disable" ] && [ $disabled -eq 0 ]; then
