@@ -10,9 +10,11 @@ if [ ! -f on_enable ]; then
 cat > on_enable <<- EOM
 echo "Enabled $1"
 EOM
+chmod +x on_enable
 fi
 if [ ! -f on_disable ]; then
 cat > on_enable <<- EOM
 echo "Disabled $1"
+chmod +x on_disable
 EOM
 fi
