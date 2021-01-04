@@ -10,24 +10,29 @@ case "$1" in
     list)
     for f in available/docker-compose.*.yml; do
       name=$(basename $f)
-      printf "$name -> "
       if [ -f "enabled/$name" ]; then
-        printf "${GREEN}enabled${NC}\n"
+        printf "${GREEN}[ enabled]${NC} $name\n"
       else
-        printf "${RED}disabled${NC}\n"
+        printf "${RED}[disabled]${NC} $name\n"
       fi
     done
     exit 0
     ;;
     enable)
-    sudo rm "enabled/docker-compose.yml" 2> /dev/null
-    sudo rm "enabled/docker-compose.$2.yml" 2> /dev/null
-    sudo test -f "available/docker-compose.yml" && sudo ln -s "../available/docker-compose.yml" "enabled/docker-compose.yml"
-    sudo test -f "available/docker-compose.$2.yml" && sudo ln -s "../available/docker-compose.$2.yml" "enabled/docker-compose.$2.yml"
+    sudo test ! -f "enabled/docker-compose.yml" && test -f "available/docker-compose.yml" && sudo ln -s "../available/docker-compose.yml" "enabled/docker-compose.yml"
+    sudo test ! -f "enabled/docker-compose.$2.yml" && sudo test -f "available/docker-compose.$2.yml" && sudo ln -s "../available/docker-compose.$2.yml" "enabled/docker-compose.$2.yml"
+    enabled=$?
+    if [ -f "on_enable" ] && [ $enabled -eq 0 ]; then
+       sudo ./on_enable $2
+    fi
     exit 0
     ;;
     disable)
-    sudo rm "enabled/docker-compose.$2.yml" 2> /dev/null
+    sudo test -f "enabled/docker-compose.$2.yml"  && sudo rm "enabled/docker-compose.$2.yml" 2> /dev/null
+    disabled=$?
+    if [ -f "on_disable" ] && [ $disabled -eq 0 ]; then
+       sudo ./on_disable $2
+    fi
     exit 0
     ;;
 esac
