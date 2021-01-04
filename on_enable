@@ -1,2 +1,0 @@
-echo "Disabled "
-chmod +x on_disable

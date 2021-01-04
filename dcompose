@@ -1,5 +1,11 @@
 #!/bin/sh
 
+if [ ! $(whoami) = "root" ]; then
+  exec sudo "$0" "$@"
+  echo "Error: failed to execute sudo" >&2
+  exit 1
+fi
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
@@ -19,22 +25,22 @@ case "$1" in
     exit 0
     ;;
     enable)
-    sudo test ! -f "enabled/docker-compose.yml" && test -f "available/docker-compose.yml" && sudo ln -s "../available/docker-compose.yml" "enabled/docker-compose.yml"
-    sudo test ! -f "enabled/docker-compose.$2.yml" && sudo test -f "available/docker-compose.$2.yml" && sudo ln -s "../available/docker-compose.$2.yml" "enabled/docker-compose.$2.yml"
+    test ! -f "enabled/docker-compose.yml" && test -f "available/docker-compose.yml" && ln -s "../available/docker-compose.yml" "enabled/docker-compose.yml"
+    test ! -f "enabled/docker-compose.$2.yml" && test -f "available/docker-compose.$2.yml" && ln -s "../available/docker-compose.$2.yml" "enabled/docker-compose.$2.yml"
     enabled=$?
     if [ -f "on_enable" ] && [ $enabled -eq 0 ]; then
-       sudo ./on_enable $2
+       ./on_enable $2
     fi
     exit 0
     ;;
     disable)
-    sudo test -f "enabled/docker-compose.$2.yml"  && sudo rm "enabled/docker-compose.$2.yml" 2> /dev/null
+    test -f "enabled/docker-compose.$2.yml"  && rm "enabled/docker-compose.$2.yml" 2> /dev/null
     disabled=$?
     if [ -f "on_disable" ] && [ $disabled -eq 0 ]; then
-       sudo ./on_disable $2
+       ./on_disable $2
     fi
     exit 0
     ;;
 esac
 
-sudo docker-compose -p dcompose -f enabled/docker-compose.yml $(find enabled/docker-compose.*.yml | sed -e 's/^/-f /') "$@"
+docker-compose -p dcompose -f enabled/docker-compose.yml $(find enabled/docker-compose.*.yml | sed -e 's/^/-f /') "$@"
