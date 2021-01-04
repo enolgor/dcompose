@@ -10,6 +10,7 @@ DIR="/etc/dcompose"
 
 mkdir -p "$DIR/enabled"
 mkdir -p "$DIR/available"
+test -f /usr/bin/dcompose && rm /usr/bin/dcompose
 curl -s https://raw.githubusercontent.com/enolgor/dcompose/master/dcompose -o /usr/bin/dcompose
 chmod a+x /usr/bin/dcompose
 cd $DIR
