@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ ! $(whoami) = "root" ]; then
   exec sudo "$0" "$@"
@@ -59,4 +59,12 @@ case "$1" in
     ;;
 esac
 
-docker-compose -p dcompose -f enabled/docker-compose.yml $(find enabled/docker-compose.*.yml | sed -e 's/^/-f /') "$@"
+# resolve env
+
+(set -o posix ; set ) > .temp.before
+source .env
+(set -o posix ; set) > .temp.after
+diff .temp.before .temp.after | grep ">" | sed s/..// > .env.resolved
+rm .temp.before .temp.after
+
+docker-compose --env-file .env.resolved -p dcompose -f enabled/docker-compose.yml $(find enabled/docker-compose.*.yml | sed -e 's/^/-f /') "$@"
