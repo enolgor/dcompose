@@ -18,10 +18,16 @@ case "$1" in
     list)
     for f in available/docker-compose.*.yml; do
       name=$(basename $f | cut -d . -f 2)
-      if [ -f "enabled/docker-compose.$name.yml" ]; then
-        printf "${GREEN}[enabled] ${NC} $name\n"
+      state=$(docker ps -a -f name="dcompose_$name\_" --format "{{.State}}")
+      if [ ! -z "$state" ] && [ $state = "running" ]; then
+         state="${GREEN}[running]    ${NC}"
       else
-        printf "${RED}[disabled]${NC} $name\n"
+         state="${RED}[not running]${NC}"
+      fi
+      if [ -f "enabled/docker-compose.$name.yml" ]; then
+        printf "${GREEN}[enabled] ${NC} $state $name\n"
+      else
+        printf "${RED}[disabled]${NC} $state $name\n"
       fi
     done
     exit 0
